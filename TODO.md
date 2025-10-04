@@ -1,0 +1,1 @@
+- [x] Change login redirect from '/booking' to '/user' in Login.js
