@@ -35,7 +35,7 @@ const UserRegistration = () => {
     setRegisterLoading(true);
 
     try {
-      await api.post('/auth/admin/register', registerForm, {
+  await api.post('/api/admin/users/register', registerForm, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -67,7 +67,7 @@ const UserRegistration = () => {
     formData.append('file', csvFile);
 
     try {
-      const response = await api.post('/auth/admin/users/upload-csv', formData, {
+  const response = await api.post('/api/admin/users/upload-csv', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setUploadResult(response.data);
