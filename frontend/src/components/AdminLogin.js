@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 
-const Login = () => {
+const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -19,12 +19,12 @@ const Login = () => {
     try {
   const response = await api.post('/api/auth/login', { email, password });
       const { token, user } = response.data;
-      if (user.role !== 'user') {
-        setError('This login is for users only. Please use Admin Login.');
+      if (user.role !== 'admin') {
+        setError('This login is for administrators only.');
         return;
       }
       login(user, token);
-      navigate('/user');
+      navigate('/admin');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
@@ -39,7 +39,7 @@ const Login = () => {
           <div className="card shadow">
             <div className="card-body">
               <h2 className="card-title text-center mb-4">
-                <i className="bi bi-box-arrow-in-right text-primary"></i> Login
+                <i className="bi bi-shield-check text-warning"></i> Admin Login
               </h2>
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
@@ -69,7 +69,7 @@ const Login = () => {
                   />
                 </div>
                 {error && <div className="alert alert-danger">{error}</div>}
-                <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+                <button type="submit" className="btn btn-warning w-100" disabled={loading}>
                   {loading ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
@@ -77,12 +77,14 @@ const Login = () => {
                     </>
                   ) : (
                     <>
-                      <i className="bi bi-box-arrow-in-right"></i> Login
+                      <i className="bi bi-shield-check"></i> Admin Login
                     </>
                   )}
                 </button>
               </form>
-
+              <div className="text-center mt-3">
+                <p><Link to="/login">User Login</Link></p>
+              </div>
             </div>
           </div>
         </div>
@@ -91,4 +93,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;
