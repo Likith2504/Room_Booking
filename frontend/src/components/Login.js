@@ -17,7 +17,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', { email, password });
+  const response = await api.post('/api/auth/login', { email, password });
       const { token, user } = response.data;
       if (user.role !== 'user') {
         setError('This login is for users only. Please use Admin Login.');
