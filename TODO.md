@@ -1,10 +1,9 @@
-- [x] Add state for buildings, floorsMap, roomsMap in UserHome.js
-- [x] Add useEffect to fetch buildings on mount
-- [x] Add functions to fetch floors for a building and rooms for a floor
-- [x] Add the 2D layout section in the render method
-- [x] Make rooms clickable with alert
-- [x] Test the layout by running the frontend
-- [x] Check remote origin (already set to https://github.com/2100031390/RoomBooking.git)
-- [ ] Add all changes (git add .)
-- [ ] Commit changes
-- [ ] Push to GitHub (git push origin master)
+- [x] Import useEffect and api from utils in BuildingRoomLayout.js
+- [x] Replace staticData with state variables: buildings, buildingFloors, floorRooms
+- [x] Add useEffect to fetch buildings on component mount
+- [x] Update handleBuildingClick to fetch floors for selected building and set buildingFloors
+- [x] Update handleFloorClick to fetch rooms for selected floor and set floorRooms
+- [x] Change selectedBuilding, selectedFloor, selectedRoom to use ids instead of names
+- [x] Update JSX to render buildings, floors, and rooms from state variables
+- [x] Update selection checks in JSX to use ids
+- [x] Update modal and book logic to use ids or names as appropriate

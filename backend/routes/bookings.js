@@ -203,4 +203,40 @@ router.get(
   }
 );
 
+// GET /api/bookings/availability/all - Get booking status for all rooms for a given date and time
+router.get(
+  '/availability/all',
+  async (req, res) => {
+    const { date, time } = req.query;
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({ message: 'Valid date (YYYY-MM-DD) required' });
+    }
+    if (!time || !/^\d{2}:\d{2}$/.test(time)) {
+      return res.status(400).json({ message: 'Valid time (HH:mm) required' });
+    }
+    try {
+      // Get all rooms
+      const roomsResult = await pool.query('SELECT id, name FROM rooms');
+      const rooms = roomsResult.rows;
+
+      // Calculate slot start and end (15 min slot)
+      const slotStart = new Date(`${date}T${time}:00`);
+      const slotEnd = new Date(slotStart.getTime() + 15 * 60 * 1000);
+
+      // Get all bookings overlapping the slot
+      const bookingsResult = await pool.query(
+        `SELECT room_id, status, start_time, end_time FROM bookings WHERE status IN ('approved', 'pending') AND (start_time < $2 AND end_time > $1)`,
+        [slotStart, slotEnd]
+      );
+      const bookings = bookingsResult.rows;
+
+      // Return all bookings for the slot
+      res.json(bookings);
+    } catch (error) {
+      console.error('Error fetching all bookings availability:', error);
+      res.status(500).json({ message: 'Server error fetching all bookings availability' });
+    }
+  }
+);
+
 module.exports = router;

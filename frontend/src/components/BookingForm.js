@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import Select from 'react-select';
 import { format, addMinutes } from 'date-fns';
 import api from '../utils/api';
@@ -6,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 
 const BookingForm = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [buildings, setBuildings] = useState([]);
   const [floors, setFloors] = useState([]);
   const [selectedBuilding, setSelectedBuilding] = useState(null);
@@ -13,7 +15,12 @@ const BookingForm = () => {
   const [numSlots, setNumSlots] = useState(1);
   const [selectedSlots, setSelectedSlots] = useState([]);
   const [purpose, setPurpose] = useState('');
-  const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [currentDate, setCurrentDate] = useState(() => {
+    if (location.state && location.state.selectedDate) {
+      return location.state.selectedDate;
+    }
+    return new Date().toISOString().split('T')[0];
+  });
   const [availability, setAvailability] = useState([]);
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,6 +40,29 @@ const BookingForm = () => {
     fetchBuildings();
   }, []);
 
+  // Prefill from location state
+  useEffect(() => {
+    if (location.state && buildings.length > 0) {
+      const { buildingId, floorId } = location.state;
+      if (buildingId) {
+        const building = buildings.find(b => b.value === buildingId);
+        if (building) {
+          setSelectedBuilding(building);
+          // Fetch floors
+          api.get(`/floors?buildingId=${buildingId}`).then(res => {
+            setFloors(res.data.map(f => ({ value: f.id, label: `Floor ${f.floor_number}` })));
+            if (floorId) {
+              const floor = res.data.find(f => f.id === floorId);
+              if (floor) {
+                setSelectedFloor({ value: floor.id, label: `Floor ${floor.floor_number}` });
+              }
+            }
+          }).catch(err => setError('Failed to fetch floors'));
+        }
+      }
+    }
+  }, [location.state, buildings]);
+
   // On building change
   const handleBuildingChange = (selected) => {
     setSelectedBuilding(selected);
@@ -41,7 +71,7 @@ const BookingForm = () => {
     setSelectedSlots([]);
     if (selected) {
       api.get(`/floors?buildingId=${selected.value}`).then(res => {
-        setFloors(res.data.map(f => ({ value: f.id, label: `floor${f.floor_number}` })));
+        setFloors(res.data.map(f => ({ value: f.id, label: `Floor ${f.floor_number}` })));
       }).catch(err => setError('Failed to fetch floors'));
     } else {
       setFloors([]);
@@ -125,7 +155,10 @@ const BookingForm = () => {
 
   // Handle cell click
   const handleCellClick = (roomId, slotTime) => {
-    if (isSlotBooked(roomId, slotTime)) return;
+    const isBooked = isSlotBooked(roomId, slotTime);
+    const isPast = slotTime < new Date();
+    const isDisabled = isBooked || isPast;
+    if (isDisabled) return;
 
     const isSelected = isSlotSelected(roomId, slotTime);
     if (isSelected) {
@@ -145,12 +178,16 @@ const BookingForm = () => {
         return;
       }
       const slotsToSelect = timeSlots.slice(slotIndex, endIndex);
-      const allFree = slotsToSelect.every(slot => !isSlotBooked(roomId, slot));
+      const allFree = slotsToSelect.every(slot => {
+        const booked = isSlotBooked(roomId, slot);
+        const past = slot < new Date();
+        return !booked && !past;
+      });
       if (allFree) {
         setSelectedSlots(slotsToSelect.map(slot => ({ roomId, startTime: slot })));
         setError('');
       } else {
-        setError(`Cannot select ${numSlots} continuous slots from this time due to bookings.`);
+        setError(`Cannot select ${numSlots} continuous slots from this time due to bookings or past times.`);
       }
     }
   };
@@ -214,7 +251,7 @@ const BookingForm = () => {
                     <Select options={floors} value={selectedFloor} onChange={handleFloorChange} placeholder="Floor" isClearable isDisabled={!selectedBuilding} />
                   </div>
                   <div className="col-md-2">
-                    <label>Number of Slots (15 min each)</label>
+                    <label>Slots (15 min each)</label>
                     <select className="form-select" value={numSlots} onChange={(e) => setNumSlots(parseInt(e.target.value))}>
                       {[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
@@ -247,15 +284,17 @@ const BookingForm = () => {
                                 <td>{format(slot, 'HH:mm')}</td>
                                 {availability.map(room => {
                                 const isBooked = isSlotBooked(room.id, slot);
+                                const isPast = slot < new Date();
+                                const isDisabled = isBooked || isPast;
                                 const isSelected = isSlotSelected(room.id, slot);
-                                const cellClass = isBooked ? 'bg-secondary text-white' : isSelected ? 'bg-primary text-white' : 'bg-white';
+                                const cellClass = isDisabled ? 'bg-secondary text-white' : isSelected ? 'bg-primary text-white' : 'bg-white';
                                 const cellStyle = {
-                                  cursor: isBooked ? 'not-allowed' : 'pointer',
+                                  cursor: isDisabled ? 'not-allowed' : 'pointer',
                                   ...(isSelected && { borderLeft: '4px solid #007bff' })
                                 };
                                 return (
-                                  <td key={room.id} className={cellClass} style={cellStyle} onClick={() => !isBooked && handleCellClick(room.id, slot)}>
-                                    {isSelected ? 'Selected' : isBooked ? 'Booked' : ''}
+                                  <td key={room.id} className={cellClass} style={cellStyle} onClick={() => !isDisabled && handleCellClick(room.id, slot)}>
+                                    {isSelected ? 'Selected' : isDisabled ? (isPast ? 'Time Out' : 'Booked') : ''}
                                   </td>
                                 );
                                 })}

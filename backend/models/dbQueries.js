@@ -292,8 +292,10 @@ async function deleteRoom(id) {
 
 // CRUD for users
 async function getAllUsers() {
-  const query = 'SELECT id, name, email, created_at FROM users ORDER BY name';
-  const result = await pool.query(query);
+  // Get users and admins, add role column
+  const userQuery = 'SELECT id, name, email, created_at, \'user\' as role FROM users';
+  const adminQuery = 'SELECT id, name, email, created_at, \'admin\' as role FROM admins';
+  const result = await pool.query(`${userQuery} UNION ALL ${adminQuery} ORDER BY name`);
   return result.rows;
 }
 
