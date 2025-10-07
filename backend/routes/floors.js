@@ -1,4 +1,5 @@
 const express = require('express');
+const pool = require('../config/database');
 const { getFloors, getAllFloors, createFloor, updateFloor, deleteFloor } = require('../models/dbQueries');
 const { verifyToken, isAdmin } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
@@ -51,6 +52,10 @@ router.post(
 
     try {
       const floor = await createFloor(buildingId, floorNumber);
+
+      // Reset sequence to max id + 1 after insert
+      await pool.query(`SELECT setval('floors_id_seq', (SELECT MAX(id) FROM floors) + 1)`);
+
       res.status(201).json({ message: 'Floor created successfully', floor });
     } catch (error) {
       console.error('Error creating floor:', error);

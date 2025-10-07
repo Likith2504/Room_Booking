@@ -1,4 +1,5 @@
 const express = require('express');
+const pool = require('../config/database');
 const { getRooms, getAllRooms, createRoom, updateRoom, deleteRoom, getRoomById } = require('../models/dbQueries');
 const { verifyToken, isAdmin } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
@@ -53,6 +54,10 @@ router.post(
 
     try {
       const room = await createRoom(floorId, name, capacity, description);
+
+      // Reset sequence to max id + 1 after insert
+      await pool.query(`SELECT setval('rooms_id_seq', (SELECT MAX(id) FROM rooms) + 1)`);
+
       res.status(201).json({ message: 'Room created successfully', room });
     } catch (error) {
       console.error('Error creating room:', error);

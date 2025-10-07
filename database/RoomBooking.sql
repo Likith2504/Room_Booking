@@ -99,3 +99,6 @@ select * from users;
 select * from admins;
 select * from floors;
 select * from rooms;
+SELECT setval('buildings_id_seq', (SELECT COALESCE(MAX(id), 1) FROM buildings));
+SELECT setval('rooms_id_seq', (SELECT COALESCE(MAX(id), 1) FROM rooms));
+SELECT setval('floors_id_seq', (SELECT COALESCE(MAX(id), 1) FROM floors));

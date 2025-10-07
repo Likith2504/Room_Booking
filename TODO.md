@@ -1,1 +1,10 @@
-- [x] Change login redirect from '/booking' to '/user' in Login.js
+- [x] Add state for buildings, floorsMap, roomsMap in UserHome.js
+- [x] Add useEffect to fetch buildings on mount
+- [x] Add functions to fetch floors for a building and rooms for a floor
+- [x] Add the 2D layout section in the render method
+- [x] Make rooms clickable with alert
+- [x] Test the layout by running the frontend
+- [x] Check remote origin (already set to https://github.com/2100031390/RoomBooking.git)
+- [ ] Add all changes (git add .)
+- [ ] Commit changes
+- [ ] Push to GitHub (git push origin master)

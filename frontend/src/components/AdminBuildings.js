@@ -64,13 +64,11 @@ const AdminBuildings = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this building?')) {
-      try {
-        await api.delete(`/buildings/${id}`);
-        fetchBuildings();
-      } catch (err) {
-        setError('Failed to delete building');
-      }
+    try {
+      await api.delete(`/buildings/${id}`);
+      fetchBuildings();
+    } catch (err) {
+      setError('Failed to delete building');
     }
   };
 

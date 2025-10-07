@@ -64,6 +64,18 @@ const AdminFloors = () => {
 
   const handleSubmit = editingFloor ? handleUpdate : async (e) => {
     e.preventDefault();
+
+    // Frontend validation for duplicate floor number in the same building
+    const duplicateFloor = floors.find(
+      (floor) =>
+        floor.floor_number === Number(newFloor.floorNumber) &&
+        floor.building_id === Number(newFloor.buildingId)
+    );
+    if (duplicateFloor) {
+      setError('Floor number already exists in this building');
+      return;
+    }
+
     try {
       await api.post('/floors', newFloor);
       setNewFloor({ floorNumber: '', buildingId: '' });
@@ -109,6 +121,7 @@ const AdminFloors = () => {
                       onChange={handleInputChange}
                       className="form-control"
                       required
+                      min="1"
                     />
                   </div>
                   <div className="col-md-5">
@@ -146,7 +159,7 @@ const AdminFloors = () => {
                   <thead>
                     <tr>
                       <th>ID</th>
-                      <th>Name</th>
+                      <th>Floor No</th>
                       <th>Building</th>
                       <th>Actions</th>
                     </tr>

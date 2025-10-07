@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BuildingRoomLayout from './BuildingRoomLayout';
 
 const UserHome = () => {
   const { user } = useAuth();
@@ -50,6 +51,13 @@ const UserHome = () => {
             <p className="role-tool-desc">Update your account password for security.</p>
           </Link>
         </div>
+      </section>
+
+      <section className="layout-2d-section mt-4">
+        <h2 className="section-title">
+          <i className="bi bi-building"></i> Buildings Layout
+        </h2>
+        <BuildingRoomLayout />
       </section>
 
       <section className="admin-contact-section">

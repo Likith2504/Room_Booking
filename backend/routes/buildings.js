@@ -1,4 +1,5 @@
 const express = require('express');
+const pool = require('../config/database');
 const { getBuildings, createBuilding, updateBuilding, deleteBuilding } = require('../models/dbQueries');
 const { verifyToken, isAdmin } = require('../middleware/auth');
 const { body, validationResult } = require('express-validator');
@@ -34,6 +35,10 @@ router.post(
 
     try {
       const building = await createBuilding(name);
+
+      // Reset sequence to max id + 1 after insert
+      await pool.query(`SELECT setval('buildings_id_seq', (SELECT MAX(id) FROM buildings) + 1)`);
+
       res.status(201).json({ message: 'Building created successfully', building });
     } catch (error) {
       console.error('Error creating building:', error);
